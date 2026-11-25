@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+node_modules/
+build/
+dist/
+release/
+*.exe
+*.spec
+!护眼小助手.spec
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db

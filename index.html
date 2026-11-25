@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>护眼小助手</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script>
+      // pywebview 桥接：对外保持 window.electronAPI 接口不变
+      window.__listeners = { config: [], gamma: [] };
+      window.__push = function (event, payload) {
+        var map = {
+          'config:changed': 'config',
+          'gamma:status': 'gamma',
+        };
+        var key = map[event];
+        if (key && window.__listeners[key]) {
+          window.__listeners[key].forEach(function (cb) { cb(payload); });
+        }
+      };
+      function initBridge() {
+        var api = window.pywebview.api;
+        window.electronAPI = {
+          getConfig: function () { return api.get_config(); },
+          setConfig: function (patch) { return api.set_config(patch); },
+          quitApp: function () { return api.quit_app(); },
+          getAutostart: function () { return api.get_autostart(); },
+          setAutostart: function (enabled) { return api.set_autostart(!!enabled); },
+          onConfigChanged: function (cb) { window.__listeners.config.push(cb); },
+          onGammaStatus: function (cb) { window.__listeners.gamma.push(cb); },
+        };
+        window.dispatchEvent(new Event('bridge-ready'));
+      }
+      if (window.pywebview && window.pywebview.api) {
+        initBridge();
+      } else {
+        window.addEventListener('pywebviewready', initBridge);
+      }
+    </script>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
